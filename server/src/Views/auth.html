@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoteTaker Authentication</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script type="module" src="/static/auth.js"></script>
+    <style>
+        .loading {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h2>Authentication</h2>
+    
+    <form id="auth-form">
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" required>
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit" id="login-btn" hx-post="/login" hx-ext="json-enc"
+                hx-on::before-request="toggleLoading('login')"
+                hx-on::after-request="toggleLoading('login', true)">
+            Login
+            <span class="loading" id="login-loading"></span>
+        </button>
+
+        <button type="button" id="register-btn" hx-post="/register" hx-ext="json-enc"
+                hx-on::before-request="toggleLoading('register')"
+                hx-on::after-request="toggleLoading('register', true)">
+            Register
+            <span class="loading" id="register-loading"></span>
+        </button>
+    </form>
+
+    <div id="login-error" style="color: red;"></div>
+
+    <div id="login-error" style="color: red;"></div>
+</body>
+</html>
