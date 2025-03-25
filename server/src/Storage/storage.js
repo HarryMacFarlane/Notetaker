@@ -6,20 +6,24 @@ import jsonwebtoken from 'jsonwebtoken';
 
 class dbRunner {
     constructor(environment) {
+        // CHANGE THIS TO CREATE OR ACCESS THE DATABAS FROM WHEREVER NECESSARY!
         this.db = new Database(`./server/src/Storage/notetaker_${environment}.db`);
     }
 
     createSession(userID) {
         try {
-            const refreshToken = crypto.randomBytes(64).toString('hex');
+            let refreshToken = crypto.randomBytes(64).toString('hex');
             // Make sure the refresh token is unique!!!
-            while (true) {
-                // UPDATE THIS FOR LATER!!!!
-                break;
+            refreshLoop: while (true) {
+                const session = this.db.prepare('SELECT * FROM sessions WHERE refresh_token = ?').get(refreshToken);
+                if (!session) {
+                    break refreshLoop;
+                }
+                refreshToken = crypto.randomBytes(64).toString('hex');
             }
             const accessToken = jsonwebtoken.sign({ userID }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30m' });
-            const stmt = this.db.prepare('INSERT INTO sessions (user_id, refreshToken, accessToken, created_at, last_refresh) VALUES (?, ?, ?, ?, ?)');
-            stmt.run(userID, refreshToken, accessToken, Date.now(), Date.now());
+            const stmt = this.db.prepare('INSERT INTO sessions (user_id, refresh_token, access_token, created_at, expires_at) VALUES (?, ?, ?, ?, ?)');
+            stmt.run(userID, refreshToken, accessToken, Date.now(), Date.now() + (60 * 60 * 24 * 7));
             return { refreshToken, accessToken };
         }
         catch (error) {
@@ -29,16 +33,16 @@ class dbRunner {
 
     refreshSession(refreshToken) {
         try {
-            const session = this.db.prepare('SELECT * FROM sessions WHERE refreshToken = ?').get(refreshToken);
+            const session = this.db.prepare('SELECT * FROM sessions WHERE refresh_token = ?').get(refreshToken);
             if (!session) {
                 throw new Error('Invalid refresh token');
             }
-            else if (session.created_at + 7 * 24 * 60 * 60 * 1000 < Date.now()) {
+            else if (session.expires_at < Date.now()) {
                 throw new Error('Refresh token expired');
             }
             const accessToken = jsonwebtoken.sign({ userID: session.user_id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30m' });
-            const stmt = this.db.prepare('UPDATE sessions SET access_token = ?, last_refresh = ? WHERE id = ?')
-            stmt.run(accessToken, Date.now(), session.id);
+            const stmt = this.db.prepare('UPDATE sessions SET access_token = ? WHERE id = ?')
+            stmt.run(accessToken, session.id);
             return accessToken;
         }
         catch (error) {
@@ -49,8 +53,8 @@ class dbRunner {
     register(email, password) {
         try {
             const passwordHash = bcrypt.hashSync(password, 10);
-            const stmt = this.db.prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)');
-            stmt.run(email, passwordHash);
+            const stmt = this.db.prepare('INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)');
+            stmt.run(email, passwordHash, Date.now());
 
             // Make sure we can now get our user id to create the subsequent session
             const userID = this.db.prepare('SELECT id FROM users WHERE email = ?').get(email).id;
