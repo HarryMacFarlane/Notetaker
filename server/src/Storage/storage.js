@@ -50,14 +50,14 @@ class dbRunner {
         }
     }
 
-    register(email, password) {
+    async register(email, password) {
         try {
-            const passwordHash = bcrypt.hashSync(password, 10);
+            const passwordHash = await bcrypt.hashSync(password, 10);
             const stmt = this.db.prepare('INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)');
             stmt.run(email, passwordHash, Date.now());
 
             // Make sure we can now get our user id to create the subsequent session
-            const userID = this.db.prepare('SELECT id FROM users WHERE email = ?').get(email).id;
+            const userID = await this.db.prepare('SELECT id FROM users WHERE email = ?').get(email).id;
             return this.createSession(userID);
         }
         catch (error) {

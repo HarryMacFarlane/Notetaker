@@ -6,6 +6,7 @@ const authRouter = express.Router();
 
 // Add the necessary middleware
 authRouter.use(cookieParser());
+authRouter.use(express.json());
 
 // Add the necessary routes
 authRouter.get('/', (req, res) => {
@@ -28,10 +29,11 @@ authRouter.post('/login', (req, res) => {
     }
 });
 
-authRouter.post('/register', (req, res) => {
+authRouter.post('/register', async (req, res) => {
     const { email, password } = req.body;
+    console.log(`User tried creating account with email: ${email} and password: ${password}`)
     try {
-        dbRunner.register(email, password);
+        const { refreshToken, accessToken } = await dbRunner.register(email, password);
         // Set refresh token in httpOnly cookie
         res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: "Strict", maxAge: 7 * 24 * 60 * 60 * 1000 });
 
@@ -39,6 +41,7 @@ authRouter.post('/register', (req, res) => {
         res.status(201).json({ accessToken });
     }
     catch (error) {
+        console.log(error);
         res.status(400).send(error.message);
     }
 });
