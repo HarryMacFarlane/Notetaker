@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 app.use('/', authRouter);
 
 // Add the static routes for client scripts
-app.use("/static", express.static(path.join(__dirname, "client/src")));
+app.use("/auth", express.static(path.join(__dirname, "/server/src/Auth/static")));
 
 // Create a websocket server on top of this express application
 

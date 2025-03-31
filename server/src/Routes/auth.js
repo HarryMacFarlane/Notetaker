@@ -46,4 +46,10 @@ authRouter.post('/register', async (req, res) => {
     }
 });
 
+// ADD LOGIC HERE TO UPDATE THE DATABASE
+router.post("/logout", (req, res) => {
+    res.clearCookie("refresh_token", { httpOnly: true, secure: true, sameSite: "Strict" });
+    res.status(200).json({ message: "Logged out successfully" });
+});
+
 export default authRouter;
