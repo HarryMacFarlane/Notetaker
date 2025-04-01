@@ -50,18 +50,25 @@ class dbRunner {
         }
     }
 
-    async register(email, password) {
+    register(email, password) {
         try {
-            const passwordHash = await bcrypt.hashSync(password, 10);
-            const stmt = this.db.prepare('INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)');
-            stmt.run(email, passwordHash, Date.now());
+            bcrypt.hash(password, 10).then(
+                (passwordHash) => {
+                    const stmt = this.db.prepare('INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)');
+                    stmt.run(email, passwordHash, Date.now());
+                }
+            )
 
             // Make sure we can now get our user id to create the subsequent session
-            const userID = await this.db.prepare('SELECT id FROM users WHERE email = ?').get(email).id;
-            return this.createSession(userID);
+            this.db.prepare('SELECT id FROM users WHERE email = ?').get(email).then(
+                (queryObject) => {
+                    const userID = queryObject.id;
+                    return this.createSession(userID);
+                }
+            )
         }
         catch (error) {
-            throw error;
+            console.log("Error during Registration! Details: %d", error);
         }
     }
 

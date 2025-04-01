@@ -1,0 +1,1 @@
+export const MAX_RE_AUTH_ATTEMTPS=3;

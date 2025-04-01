@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { Navbar, Nav, Offcanvas, Button } from "react-bootstrap";
+import { useState, useContext } from "react";
+import { Navbar, Nav, Offcanvas, Button, Container } from "react-bootstrap";
 import CustomNavLink from "./customNavLink";
 import "./navbar.module.css";
+import { useContext } from "react";
+export { AuthContext } from "../../context/authContext.jsx";
 
 export default function SideNav() {
     /* Set the width of the side navigation to 250px */
@@ -9,14 +11,22 @@ export default function SideNav() {
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
-
+    useContext(AuthContext)
+    const handleLogout = () => {
+        useContext(AuthContext)
+    }
     return (
         <>
             <Navbar bg="light" variant="light" className="">
-                <Button className='navopener' onClick={handleShow}>
-                    &#9776;
-                </Button>
-                <h1 className=""> NoteTaker </h1>
+                <Container>
+                    <Button className='navopener' onClick={handleShow}>
+                        &#9776;
+                    </Button>
+                    <h1 className=""> NoteTaker </h1>
+                    <Button className="logout" variant="outline-danger" onClick={() => { /* Add logout functionality here */ }}>
+                        Logout
+                    </Button>
+                </Container>
             </Navbar>
             <Offcanvas show={show} onHide={handleClose}>
                 <Offcanvas.Header closeButton>

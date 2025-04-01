@@ -1,5 +1,5 @@
 import express from 'express';
-import authRouter from './server/src/Routes/auth.js';
+import { dashRouter , authRouter } from './server/src/Routes/index.js';
 import path from 'path';
 import { fileURLToPath } from "url";
 
@@ -12,6 +12,8 @@ const __dirname = path.dirname(__filename);
 
 // Add the necessary routes
 app.use('/', authRouter);
+
+app.use('/dashboard', dashRouter);
 
 // Add the static routes for client scripts
 app.use("/auth", express.static(path.join(__dirname, "/server/src/Auth/static")));

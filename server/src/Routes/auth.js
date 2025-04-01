@@ -10,11 +10,12 @@ authRouter.use(express.json());
 
 // Add the necessary routes
 authRouter.get('/', (req, res) => {
-    res.sendFile('/server/src/Views/auth.html', { root: '.'});
+    res.sendFile('/server/src/Auth/auth.html', { root: '.'});
 });
 
 authRouter.post('/login', (req, res) => {
     const { email, password } = req.body;
+    // COMMENT THIS OUT LATER
     try {
         const { refreshToken, accessToken } = dbRunner.login(email, password);
 
@@ -22,10 +23,10 @@ authRouter.post('/login', (req, res) => {
         res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: "Strict", maxAge: 7 * 24 * 60 * 60 * 1000 });
 
         // Send access token in response
-        res.json({ accessToken });
+        res.json({ 'access_token': accessToken, 'email': email });
     }
     catch (error) {
-        res.status(401).send(error.message);
+        res.status(401);
     }
 });
 
@@ -33,7 +34,8 @@ authRouter.post('/register', async (req, res) => {
     const { email, password } = req.body;
     console.log(`User tried creating account with email: ${email} and password: ${password}`)
     try {
-        const { refreshToken, accessToken } = await dbRunner.register(email, password);
+        const { refreshToken, accessToken } = dbRunner.register(email, password);
+        
         // Set refresh token in httpOnly cookie
         res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: "Strict", maxAge: 7 * 24 * 60 * 60 * 1000 });
 
@@ -47,7 +49,7 @@ authRouter.post('/register', async (req, res) => {
 });
 
 // ADD LOGIC HERE TO UPDATE THE DATABASE
-router.post("/logout", (req, res) => {
+authRouter.post("/logout", (req, res) => {
     res.clearCookie("refresh_token", { httpOnly: true, secure: true, sameSite: "Strict" });
     res.status(200).json({ message: "Logged out successfully" });
 });
