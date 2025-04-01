@@ -1,16 +1,11 @@
 import { Outlet } from "react-router";
-
+import Navbar from "./Navbar/navbar.jsx";
 // MAKE SURE TO UPDATE THIS TO INCLUDE THE NAVBAR IN THE FUTURE!!!!
-function Dashboard() {
-
+export default function Dashboard() {
     return (
-        <div className="dashboard">
-            <h1>Dashboard</h1>
-            <p>Welcome to your dashboard!</p>
-            
+        <div>
+            <Navbar />
             <Outlet />
         </div>
     );
 }
-
-export default { Dashboard };

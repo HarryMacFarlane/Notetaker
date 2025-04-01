@@ -1,7 +1,7 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const AuthContext = createContext();
+export const AuthContext = createContext(null); 
 
 export function AuthProvider({ children }) {
     
@@ -34,8 +34,12 @@ export function AuthProvider({ children }) {
         setTimestamp(null);
         sessionStorage.removeItem("token");
         sessionStorage.removeItem("timestamp");
-        alert("Logged out successfully! Please close the tab!");
+        alert("Logged out successfully!");
+        window.location.href = "/";
     };
+
+    const getToken = () => {
+    }
 
     // Function to refresh token if expired
     const refreshAuthToken = async () => {
@@ -75,6 +79,6 @@ export function AuthProvider({ children }) {
     );
 }
 
-export function useAuth() {
+function useAuth() {
     return useContext(AuthContext);
 }
