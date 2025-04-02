@@ -1,8 +1,11 @@
 import Database from 'better-sqlite3';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
-import jsonwebtoken from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+import 'dotenv/config';
+import * as constants from './constants.js';
 
+// Constants (create seperate file for these in the future)
 
 class dbRunner {
     constructor(environment) {
@@ -11,76 +14,98 @@ class dbRunner {
     }
 
     createSession(userID) {
-        try {
-            let refreshToken = crypto.randomBytes(64).toString('hex');
-            // Make sure the refresh token is unique!!!
-            refreshLoop: while (true) {
-                const session = this.db.prepare('SELECT * FROM sessions WHERE refresh_token = ?').get(refreshToken);
-                if (!session) {
-                    break refreshLoop;
-                }
-                refreshToken = crypto.randomBytes(64).toString('hex');
+        // Check if a session already exists, and if it does, return that instead!
+        const session = this.db.prepare(constants.FIND_ACTIVE_SESSION).get(userID);
+        
+        if (session) {
+            try {
+                const email = this.db.prepare(constants.USER_FROM_ID_STMT).get(userID).email;
+                this.refreshSession(email, session.refresh_token);
             }
-            const accessToken = jsonwebtoken.sign({ userID }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30m' });
-            const stmt = this.db.prepare('INSERT INTO sessions (user_id, refresh_token, access_token, created_at, expires_at) VALUES (?, ?, ?, ?, ?)');
-            stmt.run(userID, refreshToken, accessToken, Date.now(), Date.now() + (60 * 60 * 24 * 7));
-            return { refreshToken, accessToken };
+            catch (e) {
+                console.log(`Failed to refresh the session(${session.id}). Creating a new one...`)
+            }
         }
-        catch (error) {
-            throw error;
-        }
+
+        const refreshToken = crypto.randomBytes(64).toString('utf8')
+        const accessToken = jwt.sign(
+            { userID },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: constants.JWT_SIGN_DURATION },
+        );
+        const time = Date.now();
+        const stmt = this.db.prepare(constants.CREATE_SESSION_STMT);
+        stmt.run(userID, refreshToken, accessToken, time, (time + constants.SEVEN_DAYS))
+        const timestamp = time + constants.THIRTY_MINUTES;
+        return { refreshToken, accessToken, timestamp };
     }
 
-    refreshSession(refreshToken) {
-        try {
-            const session = this.db.prepare('SELECT * FROM sessions WHERE refresh_token = ?').get(refreshToken);
-            if (!session) {
-                throw new Error('Invalid refresh token');
-            }
-            else if (session.expires_at < Date.now()) {
-                throw new Error('Refresh token expired');
-            }
-            const accessToken = jsonwebtoken.sign({ userID: session.user_id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30m' });
-            const stmt = this.db.prepare('UPDATE sessions SET access_token = ? WHERE id = ?')
-            stmt.run(accessToken, session.id);
-            return accessToken;
-        }
-        catch (error) {
-            throw error;
-        }
-    }
-
-    register(email, password) {
-        try {
-            bcrypt.hash(password, 10).then(
-                (passwordHash) => {
-                    const stmt = this.db.prepare('INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)');
-                    stmt.run(email, passwordHash, Date.now());
-                }
-            )
-
-            // Make sure we can now get our user id to create the subsequent session
-            this.db.prepare('SELECT id FROM users WHERE email = ?').get(email).then(
-                (queryObject) => {
-                    const userID = queryObject.id;
-                    return this.createSession(userID);
-                }
-            )
-        }
-        catch (error) {
-            console.log("Error during Registration! Details: %d", error);
-        }
-    }
-
-    login(email, password) {
-        const user = this.db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    refreshSession(email, refreshToken) {
+        const user = this.db.prepare(constants.USER_FROM_EMAIL_STMT).get(email);
         if (!user) {
-            throw new Error('Invalid email or password');
+            throw Error('User does not exist for this email!');
         }
-        if (!bcrypt.compareSync(password, user.password)) {
-            throw new Error('Invalid email or password');
+        const session = this.db.prepare(constants.SESSION_FROM_USERID_AND_REFRESH_TOKEN).get(user.id, refreshToken);
+        if (!session) {
+            throw new Error('Invalid refresh token');
         }
-        return this.createSession(user.id);
+        else if (session.expires_at < Date.now()) {
+            throw new Error('Refresh token expired');
+        }
+        const accessToken = jsonwebtoken.sign(
+            { userID: session.user_id }, 
+            process.env.ACCESS_TOKEN_SECRET, 
+            { expiresIn: constants.JWT_SIGN_DURATION }
+        );
+        
+        const timestamp = Date.now() + constants.THIRTY_MINUTES;
+        
+        this.db.prepare(constants.UPDATE_ACCESS_TOKEN).run(accessToken, timestamp, session.id);
+
+        return { refreshToken, accessToken, timestamp };
+    }
+
+    async register(email, password) {
+        return await bcrypt.hash(password, 10)
+                .then(
+                    (passwordHash) => {
+                        const stmt = this.db.prepare(constants.CREATE_USER_STMT);
+                        const date = Date.now();
+                        const info = stmt.run(email, passwordHash, date, date);
+                        const userID = this.db.prepare(constants.USER_FROM_EMAIL_STMT).get(email).id;
+                        return this.createSession(userID);
+                    }
+                )
+                .catch(
+                    (e) => {
+                        console.error(e);
+                        throw Error('There was a problem on our end. Try again later!') // REPLACE THIS WITH CHECKS FOR WHY IT FAILED
+                    }
+                )
+    }
+
+    async login(email, password) {
+        const user = this.db.prepare(constants.USER_FROM_EMAIL_STMT).get(email);
+        if (!user) {
+            throw Error('No account associated with this email.'); // REPLACE WITH CODE 404 (not found)
+        }
+        return await bcrypt.compare(password, user.password_hash)
+            .then(
+                (valid) => {
+                    if (valid) {
+                        return this.createSession(user.id);
+                    }
+                    else {
+                        throw Error('Email or password is incorrect! Please try again.') // REPLACE WITH CODE 401 (unauthorized)
+                    }
+                }
+
+            )
+            .catch(
+                (e) => {
+                    throw e; // Handle internal logic inside of createSession method...
+                }
+            )
     }
 }
 // UPDATE THIS IN THE FUTURE TO DEFINE THE NODE ENV AND USE THAT INSTEAD TO ACCESS THE DB

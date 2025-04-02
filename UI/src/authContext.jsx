@@ -1,11 +1,10 @@
 import { createContext, useState, useContext, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { ReAuthModal } from "./Components/ReAuthModal"
 
 export const AuthContext = createContext(null); 
 
 export function AuthProvider({ children }) {
-    
+
     // Load token and timestamp from session storage
     const [token, setToken] = useState(() => sessionStorage.getItem("token"));
     const [timestamp, setTimestamp] = useState(() => {
