@@ -2,18 +2,16 @@ import { useState, useContext } from "react";
 import { Navbar, Nav, Offcanvas, Button, Container } from "react-bootstrap";
 import CustomNavLink from "./customNavLink";
 import "./navbar.module.css";
-import { useContext } from "react";
-export { AuthContext } from "../../context/authContext.jsx";
 
-export default function SideNav() {
+export const SideNav = () => {
     /* Set the width of the side navigation to 250px */
     const [show, setShow] = useState(false);
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
-    useContext(AuthContext)
+    
     const handleLogout = () => {
-        useContext(AuthContext)
+        window.location.href = "/";
     }
     return (
         <>

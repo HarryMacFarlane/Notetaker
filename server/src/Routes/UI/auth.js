@@ -1,6 +1,6 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import dbRunner from '../Storage/storage.js';
+import dbRunner from '../../Storage/storage.js';
 import { COOKIE_OPTIONS } from './constants.js';
 // Create a new express router
 const authRouter = express.Router();

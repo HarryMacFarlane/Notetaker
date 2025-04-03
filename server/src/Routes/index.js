@@ -1,3 +1,2 @@
-import dashRouter from "./dashboard.js";
-import authRouter from "./auth.js";
-export { authRouter, dashRouter };
+export { authRouter, dashRouter } from './UI/index.js';
+export { apiRouter } from './API/index.js';

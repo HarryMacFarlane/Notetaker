@@ -1,15 +1,16 @@
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import { useContext, useRef } from 'react';
-import { AuthContext } from '../../authContext.jsx';
+import { Button, Form } from 'react-bootstrap';
+import authReq from "./Form/authReq.jsx";
 import Modal from 'react-bootstrap/Modal';
 import { MAX_RE_AUTH_ATTEMTPS } from './constants.jsx';
+import { reAuthenticateModal } from '../../authContext.jsx';
 
-export default function ReAuthModal ({ authFunction }) {
-    const attempts = useRef(0);
-    let errorMessage;
-    
-    const useAttempt = () => attempts.current = attempts.current + 1;
+export function ReAuthModal () {
+    const { isModalOpen, hideModal } = reAuthenticateModal();
+
+    const logout = () => {
+        hideModal();
+        window.location.href = "/";
+    }
 
     const reAuthAttempt = async (e) => {
         e.preventDefault();
@@ -17,25 +18,26 @@ export default function ReAuthModal ({ authFunction }) {
         const formData = new FormData(form);
         const email = formData.email;
         const password = formData.password;
-        try {
-            authFunction(email, password);
+
+        const success = await authReq(email, password);
+        
+        if  (success) {
+            // Hide the modal
+            hideModal();
+            return;
         }
-        catch (error) {
-            useAttempt();
-            if (attempts.current === MAX_RE_AUTH_ATTEMTPS) {
-                window.location.href = "/";
-            }
-            errorMessage = error.message;
+        else {
+            return;
         }
     }
 
     return (
-        <Modal show centered backdrop="static" keyboard={false}>
+        <Modal show={ isModalOpen } centered backdrop="static" keyboard={false}>
             <Modal.Header>
-                <Modal.Title>Session Expired - Re-authenticate</Modal.Title>
+                <Modal.Title>Session Expired <br/> Re-authenticate</Modal.Title>
+                <Button onClick={logout}>Logout</Button>
             </Modal.Header>
             <Modal.Body>
-                <p>{ errorMessage }</p>
                 <Form onSubmit={reAuthAttempt}>
                     <Form.Group className="mb-3">
                         <Form.Label>Email</Form.Label>
@@ -53,7 +55,6 @@ export default function ReAuthModal ({ authFunction }) {
                             required
                         />
                     </Form.Group>
-                    <p>Attempts left: {attempts}</p>
                     <Button variant="primary" type="submit" className="w-100">
                         Authenticate
                     </Button>

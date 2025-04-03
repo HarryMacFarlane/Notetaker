@@ -1,1 +1,1 @@
-export {default as ReAuthModal } from "./reauthmodal";
+export {ReAuthModal as ReAuthModal } from "./reauthmodal";

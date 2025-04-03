@@ -4,9 +4,7 @@ import DashboardRouter from "./router.jsx";
 
 function App() {
   return (
-    <AuthProvider>
-      <DashboardRouter />
-    </AuthProvider>
+    <AuthProvider children={<DashboardRouter />}/>
   );
 }
 
