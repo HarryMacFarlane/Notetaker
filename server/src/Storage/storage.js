@@ -107,6 +107,31 @@ class dbRunner {
                 }
             )
     }
+    async indexResource(userID, resource) {
+        // Get all resources for the given userID and resource type
+        const stmt = this.db.prepare(`SELECT * FROM ${resource} WHERE user_id = ?`);
+        const rows = stmt.all(userID);
+        return rows;
+    }
+    async getResource(userID, resource, id) {
+        const stmt = this.db.prepare(`SELECT * FROM ${resource} WHERE user_id = ? AND id = ?`);
+        const row = stmt.get(userID, id);
+        return row;
+    }
+    // I WILL LEAVE THIS BLANK FOR NOW
+    async postResource(userID, resource, data) {
+        // Data in theory should already be in the correct order, based on the form.
+    }
+    // I WILL LEAVE THIS BLANK FOR NOW
+    async patchResource(userID, resource, id, data) {
+    }
+
+    async deleteResource(userID, resource, id) {
+        const stmt = this.db.prepare(`DELETE FROM ${resource} WHERE user_id = ? AND id = ?`);
+        const info = stmt.run(userID, id);
+        return info.changes > 0;
+    }
+
 }
 // UPDATE THIS IN THE FUTURE TO DEFINE THE NODE ENV AND USE THAT INSTEAD TO ACCESS THE DB
 export default new dbRunner('dev');
