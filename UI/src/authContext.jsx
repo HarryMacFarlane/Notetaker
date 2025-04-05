@@ -1,25 +1,32 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
 
 import { ReAuthModal } from "./Components/ReAuthModal";
 
-const AuthContext = createContext(); 
+const providerContext = createContext(); 
 
 // REMAKE THIS PROVIDER TO CREATE A FUNCTION AND PROVIDE IT TO THE WHOLE APPLICATION TO POP-UP THE RE-AUTH MODAL
 export const AuthProvider = ({children}) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [reqHeader, setReqHeader] = useState({'Content-Type': 'application/json'});
+
+    // On intial load, create the headers for the request, include the token if cookies are not enabled
+    useEffect(() => {
+        const token = sessionStorage.getItem("access_token");
+        setReqHeader((current) => current['Authorization'] = (token) ? `Bearer ${token}` : null);
+    }, []);
 
     const showModal = () => setIsModalOpen(true);
 
     const hideModal = () => setIsModalOpen(false);
 
     return (
-        <AuthContext.Provider value={{ isModalOpen, showModal, hideModal }}>
+        <providerContext.Provider value={{ reqHeader, isModalOpen, showModal, hideModal }}>
             <ReAuthModal/>
             {children}
-        </AuthContext.Provider>
+        </providerContext.Provider>
     );
 }
 
-export const reAuthenticateModal = () => {
-    return useContext(AuthContext);
+export const authContext = () => {
+    return useContext(providerContext);
 }
