@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import { COOKIE_OPTIONS } from './constants.js';
-import dbRunner from '../Storage/storage.js';
 import 'dotenv/config.js';
+import { UserModel } from '../Models/index.js';
 
 const authController = {
     authenticateUser: async (req, res, next) => {
@@ -17,62 +17,68 @@ const authController = {
             if (err) {
                 return res.status(401).json({ message: "Invalid access token!"});
             }
-            req.userID = decoded; // Attach the decoded token to the request so API routes can use it
+            req.userID = decoded.id; // Attach the decoded token to the request so API routes can use it
             // PROVIDE THE USERID SOMEHOW, LOOK UP BEST PRACTICES!!!
             next();
         });
     },
     login : async (req, res) => {
-        const { email, password } = req.body;
+        const user = new UserModel(req.body);
         // COMMENT THIS OUT LATER
-        try {
-            const { refreshToken, accessToken, timestamp } = await dbRunner.login(email, password);
-    
-            // Set refresh token in httpOnly cookie
-            res.cookie("refresh_token", refreshToken, COOKIE_OPTIONS);
-            // Set access token to httpONly cookie for security (re-route to sessionStorage using client-side scripts if required)
-            res.cookie("access_token", accessToken, COOKIE_OPTIONS);
-    
-            // Send access token in response
-            return res.status(200).json({ 'access_token': accessToken, 'timestamp': timestamp });
-        }
-        catch (error) {
-            res.status(401);
-        }
+        return await user.login()
+        .then(
+            ({refreshToken, accessToken, timestamp}) => {
+                // Set refresh token in httpOnly cookie
+                res.cookie("refresh_token", refreshToken, COOKIE_OPTIONS);
+                // Set access token to httpONly cookie for security (re-route to sessionStorage using client-side scripts if required)
+                res.cookie("access_token", accessToken, COOKIE_OPTIONS);
+                return res.status(200).json({ 'access_token': accessToken, 'timestamp': timestamp });
+            }
+        )
+        .catch(
+            (err) => {
+                console.error(err);
+                res.status(401).json({error: err});
+            }
+        )
     },
     register : async (req, res) => {
-        const { fullname, email, password } = req.body;
-        try {
-            const { refreshToken, accessToken, timestamp } = await dbRunner.register(email, password);
-            
-            // Set refresh token in httpOnly cookie
-            res.cookie("refresh_token", refreshToken, COOKIE_OPTIONS);
-            res.cookie("access_token", accessToken, COOKIE_OPTIONS);
+        const user = new UserModel(req.body);
+
+        return await user.register()
+        .then(
+            ({refreshToken, accessToken, timestamp}) => {
+                // Set refresh token in httpOnly cookie
+                res.cookie("refresh_token", refreshToken, COOKIE_OPTIONS);
+                res.cookie("access_token", accessToken, COOKIE_OPTIONS);
     
-            // Send access token in response
-            return res.status(201).json({ 'access_token': accessToken, 'timestamp': timestamp });
-        }
-        catch (error) {
-            console.log(error);
-            res.status(400).send(error.message);
-        }
+                // Send access token in response
+                return res.status(201).json({ 'access_token': accessToken, 'timestamp': timestamp });
+            }
+        )
+        .catch( 
+            (err) => {
+                console.error(err);
+                res.status(400).json({error: err.message});
+            }
+        );
     },
     // FINISH REFRESH LOGIC HERE IN THE FUTURE!!!!
     refresh: async (req, res) => {
         const refreshToken = cookieParser.signedCookie(req.signedCookies['refresh_token'], process.env.COOKIE_SECRET);
-        const userID = jwt.decode(req.signedCookies['access_token'], process.env.ACCESS_TOKEN_SECRET);
-        // MODIFY THIS SO THAT THE DB QUERY USES THE USERID INSTEAD OF THE EMAIL!!!!
-        if (!refreshToken) {
-            return res.status(401).json({ message: "No refresh token provided. Ensure that cookies are enabled for automatic login and refresh!"});
-        }
-
         try {
-            const { _, accessToken, timestamp } = dbRunner.refreshSession(email, refreshToken);
-            return res.status(200).json({ 'access_token': accessToken, 'timestamp': timestamp });
+            if (!refreshToken) {
+                return res.status(401).json({ message: "No refresh token provided. Ensure that cookies are enabled for automatic login and refresh!"});
+            }
+            const accessToken = (req.signedCookies) ? 
+            req.signedCookies['access_token'] : 
+            req.headers['authorization'].split(" ")[1];
         }
-        catch (e) {
-            return res.status(500).json({ 'error': e.message }); 
+        catch (err) {
+            return res.status(401).json({error: err})
         }
+        const user = new UserModel({})
+        return user.handleSession(req.userID);
     },
     logout: (req, res) => {
         // ADD LOGIC HERE TO DELETE THE SESSION FROM THE DB!

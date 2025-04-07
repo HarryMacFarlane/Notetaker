@@ -20,6 +20,7 @@ export default class DocModel {
 
     }
     post_serialize() {
+        
         const jsonObject = {
             'id': this.data.id,
             'name': this.data.name

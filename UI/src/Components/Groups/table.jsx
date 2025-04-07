@@ -1,16 +1,19 @@
-import { Table } from "react-bootstrap"
-import { useState, useEffect } from "react"
-import { authContext } from "../../authContext";
+import dataIndexTable from "../ReUsed/table";
 
-export default function () {
+export default function GroupTable() {
 
     // IMPLEMENT FETCH HERE TO GO GET DATA!
+    const headers = {
+        'name' : 'name',
+        'description' : 'description'
+    }
+
+    const details = (id) => {
+        // Redirect to group details page
+        window.location.href = `/groups/${id}`;
+    }
 
     return (
-        <>
-            <Table>
-                
-            </Table>
-        </>
+        <dataIndexTable />
     )
 }

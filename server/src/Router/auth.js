@@ -18,8 +18,7 @@ authRouter.post('/login', authController.login);
 
 authRouter.post('/register', authController.register);
 
-// FIX THIS TO PARSE THE SECURE SITE REFRESH TOKEN COOKIE!!!!!!
-authRouter.post('/refresh', authController.refresh);
+authRouter.post('/refresh', (req, res) => authController.authenticateUser(req, res, authController.refresh));
 
 // ADD LOGIC HERE TO UPDATE THE DATABASE
 authRouter.post("/logout", authController.logout);

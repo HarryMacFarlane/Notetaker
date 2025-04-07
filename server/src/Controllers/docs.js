@@ -1,5 +1,5 @@
-import dbRunner from '../Storage/storage.js';
 import apiController from './interface.js';
+import { DocModel } from '../Models/index.js';
 
 const docController = new apiController();
 

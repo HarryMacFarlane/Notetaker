@@ -1,8 +1,9 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import dbRunner from '../Storage/storage.js';
-import { authController, userController, groupController } from '../Controllers/index.js';
+import { authController, userController, groupController, docController } from '../Controllers/index.js';
+
 import 'dotenv/config.js';
+
 // Create a new express router
 const apiRouter = express.Router();
  

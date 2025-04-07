@@ -2,10 +2,10 @@ import { Button, Form } from 'react-bootstrap';
 import authReq from "./Form/authReq.jsx";
 import Modal from 'react-bootstrap/Modal';
 import { MAX_RE_AUTH_ATTEMTPS } from './constants.jsx';
-import { reAuthenticateModal } from '../../authContext.jsx';
+import { authContext } from '../../authContext.jsx';
 
 export function ReAuthModal () {
-    const { isModalOpen, hideModal } = reAuthenticateModal();
+    const { isModalOpen, hideModal } = authContext();
 
     const logout = () => {
         hideModal();

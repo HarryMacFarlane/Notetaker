@@ -1,1 +1,1 @@
-export {default as GroupRoutes} from "./groups";
+export { GroupRoutes as GroupRoutes } from "./groups";
