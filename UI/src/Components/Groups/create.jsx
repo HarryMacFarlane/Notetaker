@@ -1,5 +1,5 @@
 
-export default function() {
+export default function GroupCreate () {
     return (
         <>
             <h1> Create Screen </h1>

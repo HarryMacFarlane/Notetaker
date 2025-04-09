@@ -1,16 +1,21 @@
-import { authContext } from "../../authContext";
-import { Button } from "react-bootstrap";
-
+import { providerContext } from "../../authContext";
+import { useParams } from "react-router-dom";
+import { useState, useEffect, useContext } from "react"
 
 export default function GroupDetails() {
+    const params = useParams()
+    const id = params.id
 
-    const [ data, setData ] = useState();
+    const context = useContext(providerContext);
+    const headers = context.reqHeader;
+
+    const [data, setData] = useState()
 
     useEffect(() => {
         fetch(
             `/api/v0/groups/${id}`,
             {
-                headers: authContext.reqHeaders,
+                headers: headers,
                 credentials: 'include',
             }
         )
@@ -18,19 +23,13 @@ export default function GroupDetails() {
             (response) => {
                 if (!response.ok) {
                     console.error('Could not fetch group data', response.statusText);
-                    onBack();
                 }
                 else {
+                    console.log(response)
                     response.json()
                     .then(
                         (data) => {
                             setData(data);
-                        }
-                    )
-                    .catch(
-                        (error) => {
-                            console.error(error);
-                            onBack();
                         }
                     )
                 }
@@ -39,7 +38,6 @@ export default function GroupDetails() {
         .catch(
             (error) => {
                 console.error(error);
-                onBack();
             }
         )
     }, [])

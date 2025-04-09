@@ -6,15 +6,21 @@ import { UserModel } from '../Models/index.js';
 
 const authController = {
     authenticateUser: async (req, res, next) => {
+        console.log(req.signedCookies)
         const accessToken = cookieParser.signedCookie(req.signedCookies['access_token'], process.env.COOKIE_SECRET);
-        // Fallback to authorization header if cookies are not available
-        accessToken ??= req.headers['authorization'].split(" ")[1];
         // FIX ERROR HERE FOR WHEN THE ACCESS TOKEN IS MODIFIED, N+AND NO AUTHORIZATION HEADER IS PROVIDED!!!
         if (!accessToken) {
-            return res.status(401).json({ message: "No access token provided."});
+            try {
+                accessToken ??= req.headers['authorization'].split(" ")[1];
+            }
+            catch (e) {
+                return res.status(401).json({ message: "No access token provided."});
+            }
         }
+        
         jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
             if (err) {
+                // Add something here to attempt a refresh???
                 return res.status(401).json({ message: "Invalid access token!"});
             }
             req.userID = decoded.id; // Attach the decoded token to the request so API routes can use it
@@ -64,7 +70,7 @@ const authController = {
         );
     },
     // FINISH REFRESH LOGIC HERE IN THE FUTURE!!!!
-    refresh: async (req, res) => {
+    refresh: async (req, res, next) => {
         const refreshToken = cookieParser.signedCookie(req.signedCookies['refresh_token'], process.env.COOKIE_SECRET);
         try {
             if (!refreshToken) {

@@ -1,28 +1,35 @@
 import { Button, Table } from "react-bootstrap"
 
-const indexDataTable = ({detailFunction, headers}) => {
+const IndexDataTable = ({createFunction, detailFunction, headers, data}) => {
+    if (!data) {
+        return (
+            <h1> NO GROUPS FOUND!</h1>
+        )
+    }
 
     return (
-        <Table striped bordered hover responsive>
-            <thead>
-                <tr>
-                {Object.values(headers).map((headerLabel, idx) => (
-                    <th key={idx}>{headerLabel}</th>
-                ))}
-                </tr>
-            </thead>
-            <tbody>
-                {data.map((entry, rowIndex) => (
-                <tr key={rowIndex}>
-                    {Object.keys(headers).map((key, colIndex) => (
-                    <td key={colIndex}>{entry[key]}</td>
+        <>
+            <Button onClick={createFunction}>Create</Button>
+            <Table striped bordered hover responsive>
+                <thead>
+                    <tr>
+                    {Object.values(headers).map((headerLabel, idx) => (
+                        <th key={idx}>{headerLabel}</th>
                     ))}
-                    <Button onClick={() => detailFunction(entry.id)}> Details </Button>
-                </tr>
-                ))}
-            </tbody>
-        </Table>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.map((entry, rowIndex) => (
+                    <tr key={rowIndex} onClick={() => detailFunction(entry.id)}>
+                        {Object.keys(headers).map((key, colIndex) => (
+                        <td key={colIndex}>{entry[key]}</td>
+                        ))}
+                    </tr>
+                    ))}
+                </tbody>
+            </Table>
+        </>
     )
 }
 
-export default indexDataTable;
+export default IndexDataTable;
