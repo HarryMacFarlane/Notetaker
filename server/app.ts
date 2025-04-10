@@ -1,5 +1,5 @@
 import express from 'express';
-import { dashRouter , authRouter, apiRouter } from './server/src/Router/index.js';
+import { dashRouter , authRouter, apiRouter } from './src/Router/index.js';
 import 'dotenv/config.js';
 import cookieParser from 'cookie-parser';
 // Create a new express application
