@@ -55,7 +55,7 @@ export const SESSION_STATEMENTS : SessionStatements = {
         SELECT * 
         FROM sessions
         WHERE user_id = ? 
-        ORDER BY expires_at DESC 
+        ORxDER BY expires_at DESC 
         LIMIT 1;
     `,
     CREATE: `
