@@ -1,12 +1,25 @@
 {
-  "type": "module",
+  "type": "commonjs",
+  "scripts": {
+    "watch": "tsc -w",
+    "dev": "nodemon dist/index.js",
+    "start": "node dist/index.js",
+    "start2": "ts-node src/index.ts",
+    "dev2": "nodemon --exec ts-node src/index.ts"
+  },
   "dependencies": {
+    "@types/react": "^19.1.1",
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^11.9.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "react": "^19.1.0",
+    "react-bootstrap": "^2.10.9",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.5.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -16,6 +29,7 @@
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.14.0",
+    "@types/react-dom": "^19.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }

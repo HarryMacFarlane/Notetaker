@@ -1,8 +1,11 @@
-export const JWT_SIGN_OPTIONS = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SESSION_STMTS = exports.AUTH_STMTS = exports.SEVEN_DAYS = exports.JWT_SIGN_OPTIONS = void 0;
+exports.JWT_SIGN_OPTIONS = {
     expiresIn: "1h",
 };
-export const SEVEN_DAYS = 604800;
-export const AUTH_STMTS = {
+exports.SEVEN_DAYS = 604800;
+exports.AUTH_STMTS = {
     LOGIN: `
         SELECT *
         FROM users
@@ -14,7 +17,7 @@ export const AUTH_STMTS = {
         RETURNING *
     `,
 };
-export const SESSION_STMTS = {
+exports.SESSION_STMTS = {
     CREATE: `
         INSERT INTO sessions (user_id, refresh_token, access_token, created_at, expires_at)
         VALUES (?, ?, ?, ?, ?)
@@ -33,3 +36,4 @@ export const SESSION_STMTS = {
         WHERE id = ?
     `
 };
+//# sourceMappingURL=constants.js.map
