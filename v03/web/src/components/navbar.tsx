@@ -1,17 +1,27 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import { Outlet } from "react-router-dom";
-import { useGraphQL } from "../graphql/client";
+import { Outlet, useNavigate } from "react-router-dom";
 import { authenticationCheck } from "../util/authenticationCheck";
-import { Navigate } from "react-router-dom";
+import { useGraphQL } from "../graphql/client";
 interface NavBarProps {}
 
-const NavBar : React.FC<NavBarProps> = async ({}) => {
+const NavBar : React.FC<NavBarProps> = ({}) => {
+    const navigate = useNavigate();
     const { client } = useGraphQL();
 
-    if (!await authenticationCheck({ client } )) return <Navigate to="/authentication"/>
+    const authCheck = () => {
+        authenticationCheck({client})
+        .then(
+            (valid) => {
+                if (!valid) navigate("/authentication");
+            }
+        )
+    }
+    // Navigate to login if user is not logged in
+    useEffect(authCheck,[])
+    
     return (
     <>
         <Navbar expand="lg" className="bg-body-tertiary">

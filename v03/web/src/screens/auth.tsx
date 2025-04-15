@@ -56,7 +56,7 @@ const AuthScreen: React.FC = ({}) => {
                 console.log(response)
                 if (!response.register?.errors){
                     console.log("Login Successful!");
-                    navigate("/home");
+                    navigate("/");
                 }
                 else {
                     setErrors(toErrorMap(response.register.errors))
