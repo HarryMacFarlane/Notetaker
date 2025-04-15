@@ -12,9 +12,12 @@
   "dependencies": {
     "bootstrap": "^5.3.5",
     "formik": "^2.4.6",
+    "graphql": "^16.10.0",
+    "graphql-request": "^7.1.2",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

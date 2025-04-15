@@ -72,7 +72,10 @@ const main = async () => {
 
     app.use(
         "/graphql",
-        cors<cors.CorsRequest>(),
+        cors<cors.CorsRequest>({
+            origin: "http://localhost:5173", // ADD THIS TO ENV LATER!!!! (SET USING DOCKER?),
+            credentials: true
+        }),
         express.json(),
         expressMiddleware(apolloServer, {
             context: async ({ req, res }: { req : Request, res : Response}): Promise<MyContext> => ({ em: contextManager, req, res })}

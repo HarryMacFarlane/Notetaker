@@ -53,7 +53,10 @@ const main = async () => {
         plugins: [(0, drainHttpServer_1.ApolloServerPluginDrainHttpServer)({ httpServer })],
     });
     await apolloServer.start();
-    app.use("/graphql", (0, cors_1.default)(), express_1.default.json(), (0, express4_1.expressMiddleware)(apolloServer, {
+    app.use("/graphql", (0, cors_1.default)({
+        origin: "http://localhost:5173",
+        credentials: true
+    }), express_1.default.json(), (0, express4_1.expressMiddleware)(apolloServer, {
         context: async ({ req, res }) => ({ em: contextManager, req, res })
     }));
     app.listen(3000, () => {

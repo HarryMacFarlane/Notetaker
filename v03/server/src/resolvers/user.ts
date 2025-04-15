@@ -27,10 +27,29 @@ class UserResponse {
     user? : User
 }
 
-
+@ObjectType()
+class AuthCheckResponse {
+    @Field()
+    ok: boolean
+}
 
 @Resolver()
 export default class UserResolver {
+    @Query(() => AuthCheckResponse)
+    me(
+        @Ctx() { em, req }: MyContext,
+
+    ) : AuthCheckResponse {
+
+        if (!req.session.userID) {
+            return {ok: false};
+        }
+        else {
+            return {ok: true};
+        }
+        throw new Error("Not Implemented!")
+    }
+
     @Query(() => UserResponse, { nullable: true })
     async login(
         @Ctx() { em, req }: MyContext,
@@ -69,7 +88,7 @@ export default class UserResolver {
     @Mutation(() => UserResponse, { nullable: true })
     async register(
         @Ctx() { em }: MyContext,
-        @Arg('options') options : AuthInput,
+        @Arg('options') options : AuthInput
     ) : Promise<UserResponse> {
 
         const hashedPassword = await bcrypt.hash(options.password, 10);

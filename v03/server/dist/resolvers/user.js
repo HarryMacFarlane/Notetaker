@@ -57,7 +57,25 @@ __decorate([
 UserResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], UserResponse);
+let AuthCheckResponse = class AuthCheckResponse {
+};
+__decorate([
+    (0, type_graphql_1.Field)(),
+    __metadata("design:type", Boolean)
+], AuthCheckResponse.prototype, "ok", void 0);
+AuthCheckResponse = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], AuthCheckResponse);
 let UserResolver = class UserResolver {
+    me({ em, req }) {
+        if (!req.session.userID) {
+            return { ok: false };
+        }
+        else {
+            return { ok: true };
+        }
+        throw new Error("Not Implemented!");
+    }
     async login({ em, req }, options) {
         const user = await em.findOne(entities_1.User, { email: options.email });
         if (!user) {
@@ -106,6 +124,13 @@ let UserResolver = class UserResolver {
         return { user };
     }
 };
+__decorate([
+    (0, type_graphql_1.Query)(() => AuthCheckResponse),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", AuthCheckResponse)
+], UserResolver.prototype, "me", null);
 __decorate([
     (0, type_graphql_1.Query)(() => UserResponse, { nullable: true }),
     __param(0, (0, type_graphql_1.Ctx)()),

@@ -1,11 +1,7 @@
 import { Container } from "react-bootstrap";
+import { ChildrenInput } from "../util/childrenInterface";
 
-
-interface ContainerProps {
-    children : React.ReactNode
-}
-
-const Wrapper : React.FC<ContainerProps> = ({ children }) => {
+const Wrapper : React.FC<ChildrenInput> = ({ children }) => {
     return (
         <Container>
             {children}
