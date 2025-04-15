@@ -1,13 +1,13 @@
 import { Ctx, Query, Resolver, Arg, Mutation, InputType, Field, ObjectType } from "type-graphql";
 import { User } from "../entities";
 import { MyContext } from "src/types";
-import argon2 from "argon2";
+import bcrypt from "bcrypt";
 
 @InputType()
 class AuthInput {
-    @Field()
+    @Field(() => String)
     email!: string
-    @Field()
+    @Field(() => String)
     password!: string
 }
 
@@ -33,7 +33,7 @@ class UserResponse {
 export default class UserResolver {
     @Query(() => UserResponse, { nullable: true })
     async login(
-        @Ctx() { em }: MyContext,
+        @Ctx() { em, req }: MyContext,
         @Arg('options') options : AuthInput,
     ) : Promise<UserResponse> {
 
@@ -50,8 +50,7 @@ export default class UserResolver {
             };
         }
 
-        const valid : boolean = await argon2.verify(options.password, user.password);
-        if (valid) {
+        if (!bcrypt.compareSync(options.password, user.password)) {
             return {
                 errors: [
                     {
@@ -62,16 +61,18 @@ export default class UserResolver {
             };
         }
 
+        req.session.userID = user.id!; // BANG USED AS NO USER W/O ID CAN EXIST!
+
         return {user};
     }
 
-    @Mutation(() => UserResponse, { nullable: true})
+    @Mutation(() => UserResponse, { nullable: true })
     async register(
         @Ctx() { em }: MyContext,
         @Arg('options') options : AuthInput,
     ) : Promise<UserResponse> {
 
-        const hashedPassword = await argon2.hash(options.password);
+        const hashedPassword = await bcrypt.hash(options.password, 10);
 
         const user = em.create(User, {
             email: options.email,

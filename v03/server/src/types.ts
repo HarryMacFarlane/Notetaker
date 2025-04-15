@@ -1,5 +1,16 @@
-import { SqlEntityManager } from "@mikro-orm/postgresql"
+import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core"
+import { Request, Response, } from "express"
+import { BaseContext } from "@apollo/server"
+import { SessionData } from "express-session"
 
-export type MyContext = {
-    em: SqlEntityManager
+declare module 'express-session' {
+    interface SessionData {
+        userID?: string;
+    }
+}
+
+export interface MyContext extends BaseContext {
+    em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>,
+    req : Request & { session: SessionData }
+    res : Response
 }

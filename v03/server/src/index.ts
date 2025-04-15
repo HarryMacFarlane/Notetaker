@@ -5,14 +5,14 @@ import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { buildSchema } from "type-graphql";
 import { HelloResolver, UserResolver } from "./resolvers";
-import express from "express"
+import express, { Request, Response } from "express"
 import cors from "cors";
-import { User } from "./entities";
 import http from "http";
 import { MyContext } from "./types";
-import connectRedis from "connect-redis"
+import { RedisStore } from "connect-redis"
 import session from "express-session";
 import {createClient} from "redis";
+import { __prod__ } from "./constants";
 
 const main = async () => {
     const app = express();
@@ -23,16 +23,28 @@ const main = async () => {
 
     await redisClient.connect().catch(console.error);
 
-    const RedisStore = connectRedis(session);
+    redisClient.on('error', error => {
+        console.error(`Redis client error:`, error);
+    });
 
     app.use(
         session({
             name: "qid",
-            store: new RedisStore({ client: redisClient }),
+            store: new RedisStore({
+                client: redisClient,
+                disableTouch: true,
+            }),
+            cookie: {
+                maxAge: 1000 * 60 * 60 * 24 * 7,
+                sameSite: "lax",
+                httpOnly: true,
+                secure: __prod__,
+            },
             secret: "this is not going to work",
-            resave: false
+            resave: false,
+            saveUninitialized: false
         })
-    )
+    );
 
     const orm = await MikroORM.init(microOrmConfig);
 
@@ -41,10 +53,6 @@ const main = async () => {
     const contextManager = orm.em.fork({
         useContext: true
     });
-
-    const users = await contextManager.find(User, {});
-
-    console.log(users);
 
     
     const apolloServer = new ApolloServer<MyContext>(
@@ -57,23 +65,19 @@ const main = async () => {
             ),
             plugins: [ApolloServerPluginDrainHttpServer({httpServer})],
         }
-    )
+    );
 
     await apolloServer.start();
 
 
     app.use(
         "/graphql",
-        cors(),
+        cors<cors.CorsRequest>(),
         express.json(),
-        expressMiddleware<MyContext>(apolloServer,
-            {
-                context: async () => ({
-                    em: contextManager
-                } as MyContext)
-            }
+        expressMiddleware(apolloServer, {
+            context: async ({ req, res }: { req : Request, res : Response}): Promise<MyContext> => ({ em: contextManager, req, res })}
         )
-    )
+    );
 
 
     app.listen(3000, () => {

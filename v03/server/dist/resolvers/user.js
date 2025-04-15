@@ -17,15 +17,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const type_graphql_1 = require("type-graphql");
 const entities_1 = require("../entities");
-const argon2_1 = __importDefault(require("argon2"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
 let AuthInput = class AuthInput {
 };
 __decorate([
-    (0, type_graphql_1.Field)(),
+    (0, type_graphql_1.Field)(() => String),
     __metadata("design:type", String)
 ], AuthInput.prototype, "email", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(),
+    (0, type_graphql_1.Field)(() => String),
     __metadata("design:type", String)
 ], AuthInput.prototype, "password", void 0);
 AuthInput = __decorate([
@@ -58,7 +58,7 @@ UserResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], UserResponse);
 let UserResolver = class UserResolver {
-    async login({ em }, options) {
+    async login({ em, req }, options) {
         const user = await em.findOne(entities_1.User, { email: options.email });
         if (!user) {
             return {
@@ -70,8 +70,7 @@ let UserResolver = class UserResolver {
                 ]
             };
         }
-        const valid = await argon2_1.default.verify(options.password, user.password);
-        if (valid) {
+        if (!bcrypt_1.default.compareSync(options.password, user.password)) {
             return {
                 errors: [
                     {
@@ -81,10 +80,11 @@ let UserResolver = class UserResolver {
                 ]
             };
         }
+        req.session.userID = user.id;
         return { user };
     }
     async register({ em }, options) {
-        const hashedPassword = await argon2_1.default.hash(options.password);
+        const hashedPassword = await bcrypt_1.default.hash(options.password, 10);
         const user = em.create(entities_1.User, {
             email: options.email,
             password: hashedPassword
