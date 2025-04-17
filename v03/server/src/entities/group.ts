@@ -5,28 +5,26 @@ import Membership from "./membership";
 
 @ObjectType()
 @Entity()
-export default class User {
+export default class Group {
 
     @Field(() => String)
     @PrimaryKey({ type: "uuid"})
     id?: string = uuid();
 
     @Field(() => String,)
-    @Property({ type: "character varying", length: 255, unique: true})
-    email!: string;
-
-    @Property({ type: "character varying", length: 255})
-    password!: string;
-
+    @Property({ type: "character varying", length: 255 })
+    name!: string;
+    
     @Field(() => String)
+    @Property({ type: "character varying", length: 1000})
+    description!: string;
+
+    @Field(() => Date)
     @Property({ onCreate: () => new Date, type: "date", default: 'NOW()'})
     created_at?: Date;
 
-    @Field(() => String)
-    @Property({ onCreate: () => new Date, onUpdate: () => new Date, type: "date", default: 'NOW()'})
-    last_sign_in?: Date
-
-    @Field(()=> [Membership])
-    @OneToMany({ entity: () => Membership,mappedBy: 'member' })
+    @Field(() => [Membership])
+    @OneToMany({ mappedBy : 'group', entity: () => Membership })
     memberships = new Collection<Membership>(this);
+
 }

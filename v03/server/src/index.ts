@@ -4,7 +4,7 @@ import { expressMiddleware } from "@apollo/server/express4"
 import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { buildSchema } from "type-graphql";
-import { HelloResolver, UserResolver } from "./resolvers";
+import { HelloResolver, UserResolver, GroupResolver } from "./resolvers";
 import express, { Request, Response } from "express"
 import cors from "cors";
 import http from "http";
@@ -59,7 +59,7 @@ const main = async () => {
         {
             schema: await buildSchema(
                 {
-                    resolvers: [HelloResolver, UserResolver],
+                    resolvers: [HelloResolver, UserResolver, GroupResolver],
                     validate: false,
                 }
             ),

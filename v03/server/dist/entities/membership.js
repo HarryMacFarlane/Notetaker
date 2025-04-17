@@ -12,48 +12,56 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.UserRole = void 0;
 const core_1 = require("@mikro-orm/core");
 const uuid_1 = require("uuid");
 const type_graphql_1 = require("type-graphql");
-const membership_1 = __importDefault(require("./membership"));
-let User = class User {
+const group_1 = __importDefault(require("./group"));
+const user_1 = __importDefault(require("./user"));
+let Membership = class Membership {
     constructor() {
         this.id = (0, uuid_1.v4)();
-        this.memberships = new core_1.Collection(this);
     }
 };
 __decorate([
     (0, type_graphql_1.Field)(() => String),
     (0, core_1.PrimaryKey)({ type: "uuid" }),
     __metadata("design:type", String)
-], User.prototype, "id", void 0);
+], Membership.prototype, "id", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => group_1.default),
+    (0, core_1.ManyToOne)(() => group_1.default),
+    __metadata("design:type", group_1.default)
+], Membership.prototype, "group", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => user_1.default),
+    (0, core_1.ManyToOne)(() => user_1.default),
+    __metadata("design:type", user_1.default)
+], Membership.prototype, "member", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
-    (0, core_1.Property)({ type: "character varying", length: 255, unique: true }),
+    (0, core_1.Enum)(() => UserRole),
     __metadata("design:type", String)
-], User.prototype, "email", void 0);
+], Membership.prototype, "role", void 0);
 __decorate([
-    (0, core_1.Property)({ type: "character varying", length: 255 }),
-    __metadata("design:type", String)
-], User.prototype, "password", void 0);
-__decorate([
-    (0, type_graphql_1.Field)(() => String),
+    (0, type_graphql_1.Field)(() => Date),
     (0, core_1.Property)({ onCreate: () => new Date, type: "date", default: 'NOW()' }),
     __metadata("design:type", Date)
-], User.prototype, "created_at", void 0);
+], Membership.prototype, "joined_at", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => String),
+    (0, type_graphql_1.Field)(() => Date),
     (0, core_1.Property)({ onCreate: () => new Date, onUpdate: () => new Date, type: "date", default: 'NOW()' }),
     __metadata("design:type", Date)
-], User.prototype, "last_sign_in", void 0);
-__decorate([
-    (0, type_graphql_1.Field)(() => [membership_1.default]),
-    (0, core_1.OneToMany)({ entity: () => membership_1.default, mappedBy: 'member' }),
-    __metadata("design:type", Object)
-], User.prototype, "memberships", void 0);
-User = __decorate([
+], Membership.prototype, "last_action", void 0);
+Membership = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, core_1.Entity)()
-], User);
-exports.default = User;
-//# sourceMappingURL=user.js.map
+], Membership);
+exports.default = Membership;
+var UserRole;
+(function (UserRole) {
+    UserRole["READER"] = "reader";
+    UserRole["EDITOR"] = "editor";
+    UserRole["ADMIN"] = "admin";
+})(UserRole || (exports.UserRole = UserRole = {}));
+//# sourceMappingURL=membership.js.map

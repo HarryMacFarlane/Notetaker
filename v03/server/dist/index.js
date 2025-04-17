@@ -47,7 +47,7 @@ const main = async () => {
     });
     const apolloServer = new server_1.ApolloServer({
         schema: await (0, type_graphql_1.buildSchema)({
-            resolvers: [resolvers_1.HelloResolver, resolvers_1.UserResolver],
+            resolvers: [resolvers_1.HelloResolver, resolvers_1.UserResolver, resolvers_1.GroupResolver],
             validate: false,
         }),
         plugins: [(0, drainHttpServer_1.ApolloServerPluginDrainHttpServer)({ httpServer })],

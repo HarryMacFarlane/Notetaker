@@ -2,10 +2,11 @@ import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core"
 import { Request, Response, } from "express"
 import { BaseContext } from "@apollo/server"
 import { SessionData } from "express-session"
+import { User } from "./entities";
 
 declare module 'express-session' {
     interface SessionData {
-        userID?: string;
+        user?: User;
     }
 }
 

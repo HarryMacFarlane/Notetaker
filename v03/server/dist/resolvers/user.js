@@ -67,14 +67,28 @@ AuthCheckResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], AuthCheckResponse);
 let UserResolver = class UserResolver {
-    me({ em, req }) {
-        if (!req.session.userID) {
+    async getUser({ em, req }) {
+        if (!req.session.user) {
+            return {
+                errors: [
+                    {
+                        field: "NAN",
+                        message: "You are not signed in!"
+                    }
+                ]
+            };
+        }
+        return {
+            user: req.session.user
+        };
+    }
+    me({ req }) {
+        if (!req.session.user) {
             return { ok: false };
         }
         else {
             return { ok: true };
         }
-        throw new Error("Not Implemented!");
     }
     async login({ em, req }, options) {
         const user = await em.findOne(entities_1.User, { email: options.email });
@@ -98,10 +112,10 @@ let UserResolver = class UserResolver {
                 ]
             };
         }
-        req.session.userID = user.id;
+        req.session.user = user;
         return { user };
     }
-    async register({ em }, options) {
+    async register({ em, req }, options) {
         const hashedPassword = await bcrypt_1.default.hash(options.password, 10);
         const user = em.create(entities_1.User, {
             email: options.email,
@@ -121,9 +135,17 @@ let UserResolver = class UserResolver {
                 };
             }
         }
+        req.session.user = user;
         return { user };
     }
 };
+__decorate([
+    (0, type_graphql_1.Query)(() => UserResponse),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "getUser", null);
 __decorate([
     (0, type_graphql_1.Query)(() => AuthCheckResponse),
     __param(0, (0, type_graphql_1.Ctx)()),

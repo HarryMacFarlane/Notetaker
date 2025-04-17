@@ -35,19 +35,41 @@ class AuthCheckResponse {
 
 @Resolver()
 export default class UserResolver {
+    @Query(() => UserResponse)
+    async getUser(
+        @Ctx() { em, req } : MyContext,
+
+    ) : Promise<UserResponse> {
+
+        if (!req.session.user) {
+            return {
+                errors: [
+                    {
+                        field: "NAN",
+                        message: "You are not signed in!"
+                    }
+                ]
+            }
+        }
+
+        return {
+            user : req.session.user
+        }
+    }
+
+
     @Query(() => AuthCheckResponse)
     me(
-        @Ctx() { em, req }: MyContext,
+        @Ctx() { req }: MyContext,
 
     ) : AuthCheckResponse {
 
-        if (!req.session.userID) {
+        if (!req.session.user) {
             return {ok: false};
         }
         else {
             return {ok: true};
         }
-        throw new Error("Not Implemented!")
     }
 
     @Query(() => UserResponse, { nullable: true })
@@ -80,14 +102,14 @@ export default class UserResolver {
             };
         }
 
-        req.session.userID = user.id!; // BANG USED AS NO USER W/O ID CAN EXIST!
+        req.session.user= user; // BANG USED AS NO USER W/O ID CAN EXIST!
 
         return {user};
     }
 
     @Mutation(() => UserResponse, { nullable: true })
     async register(
-        @Ctx() { em }: MyContext,
+        @Ctx() { em, req }: MyContext,
         @Arg('options') options : AuthInput
     ) : Promise<UserResponse> {
 
@@ -111,6 +133,8 @@ export default class UserResolver {
                 }
             }
         }
+
+        req.session.user = user;
 
         return {user};
     }
